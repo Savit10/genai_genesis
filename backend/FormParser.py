@@ -19,80 +19,28 @@ def process_document_form_sample(
     processor_version: str,
     file_path: str,
     mime_type: str,
-) -> documentai.Document:
+) -> dict:
     # Online processing request to Document AI
     document = process_document(
         project_id, location, processor_id, processor_version, file_path, mime_type
     )
 
-    # Read the table and form fields output from the processor
-    # The form processor also contains OCR data. For more information
-    # on how to parse OCR data please see the OCR sample.
+    # Initialize dictionary to store form field key-value pairs
+    form_data = {}
 
-    text = document.text
-    print(f"Full document text: {repr(text)}\n")
-    print(f"There are {len(document.pages)} page(s) in this document.")
-
-    # Read the form fields and tables output from the processor
+    # Extract form fields from all pages
     for page in document.pages:
-        print(f"\n\n**** Page {page.page_number} ****")
-
-        print(f"\nFound {len(page.tables)} table(s):")
-        for table in page.tables:
-            num_columns = len(table.header_rows[0].cells)
-            num_rows = len(table.body_rows)
-            print(f"Table with {num_columns} columns and {num_rows} rows:")
-
-            # Print header rows
-            print("Columns:")
-            print_table_rows(table.header_rows, text)
-            # Print body rows
-            print("Table body data:")
-            print_table_rows(table.body_rows, text)
-
-        print(f"\nFound {len(page.form_fields)} form field(s):")
         for field in page.form_fields:
-            name = layout_to_text(field.field_name, text)
-            value = layout_to_text(field.field_value, text)
-            print(f"    * {repr(name.strip())}: {repr(value.strip())}")
+            name = layout_to_text(field.field_name, document.text)
+            value = layout_to_text(field.field_value, document.text)
+            form_data[name.strip()] = value.strip()
+    
+    # Print the extracted form data as JSON
+    print("\nExtracted Form Data:")
+    import json
+    print(json.dumps(form_data, indent=2))
 
-    # Supported in version `pretrained-form-parser-v2.0-2022-11-10` and later.
-    # For more information: https://cloud.google.com/document-ai/docs/form-parser
-    if document.entities:
-        print(f"Found {len(document.entities)} generic entities:")
-        for entity in document.entities:
-            print_entity(entity)
-            # Print Nested Entities
-            for prop in entity.properties:
-                print_entity(prop)
-
-    return document
-
-def print_table_rows(
-    table_rows: Sequence[documentai.Document.Page.Table.TableRow], text: str
-) -> None:
-    for table_row in table_rows:
-        row_text = ""
-        for cell in table_row.cells:
-            cell_text = layout_to_text(cell.layout, text)
-            row_text += f"{repr(cell_text.strip())} | "
-        print(row_text)
-
-def print_entity(entity: documentai.Document.Entity) -> None:
-    # Fields detected. For a full list of fields for each processor see
-    # the processor documentation:
-    # https://cloud.google.com/document-ai/docs/processors-list
-    key = entity.type_
-
-    # Some other value formats in addition to text are available
-    # e.g. dates: `entity.normalized_value.date_value.year`
-    text_value = entity.text_anchor.content or entity.mention_text
-    confidence = entity.confidence
-    normalized_value = entity.normalized_value.text
-    print(f"    * {repr(key)}: {repr(text_value)} ({confidence:.1%} confident)")
-
-    if normalized_value:
-        print(f"    * Normalized Value: {repr(normalized_value)}")
+    return form_data
 
 def process_document(
     project_id: str,
