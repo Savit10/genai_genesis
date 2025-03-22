@@ -3,16 +3,6 @@ from typing import Optional
 from google.api_core.client_options import ClientOptions
 from google.cloud import documentai  # type: ignore
 
-# TODO(developer): Uncomment these variables before running the sample.
-# project_id = "YOUR_PROJECT_ID"
-# location = "YOUR_PROCESSOR_LOCATION" # Format is "us" or "eu"
-# processor_id = "YOUR_PROCESSOR_ID" # Create processor before running sample
-# file_path = "/path/to/local/pdf"
-# mime_type = "application/pdf" # Refer to https://cloud.google.com/document-ai/docs/file-types for supported file types
-# field_mask = "text,entities,pages.pageNumber"  # Optional. The fields to return in the Document object.
-# processor_version_id = "YOUR_PROCESSOR_VERSION_ID" # Optional. Processor version to use
-
-
 def process_document_sample(
     project_id: str,
     location: str,
@@ -68,23 +58,18 @@ def process_document_sample(
     # https://cloud.google.com/document-ai/docs/reference/rest/v1/Document
     document = result.document
 
+
     # Read the text recognition output from the processor
-    print("The document is classified as: ")
+    #print("The document is classified as: ")
     maxVal = float('-inf')
     maxKey = ""
     for entity in document.entities:
         if entity.confidence > maxVal:
             maxVal = entity.confidence
             maxKey = entity.type_
-    print(f"Document classified as: {maxKey}")
+    #print(f"Document classified as: {maxKey}")
+
+    return maxKey
 
 # Example usage:
-process_document_sample(
-    project_id="genesis-genai-454505",
-    location="us",
-    processor_id="14e7ceab3f5db4d",
-    file_path="sample1.pdf",
-    mime_type="application/pdf",
-    field_mask="text,entities,pages.pageNumber",
-    processor_version_id="9d9f356e7d49f10f"
-)
+

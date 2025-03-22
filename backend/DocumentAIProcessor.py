@@ -74,22 +74,22 @@ def process_document_sample(
 
 
 # OCR with the processor
-process_document_sample(
+""" process_document_sample(
     project_id="genesis-genai-454505",
     location="us",
     processor_id="bad535317e51821f",
-    file_path=r"C:\Users\akars\Desktop\Studies\EXTRA\GenAIGenesis\genai_genesis\backend\sample.pdf",
+    file_path=r"/Users/savit/Desktop/Code/genai_genesis/backend/sample.pdf",
     mime_type="application/pdf",
     field_mask="text",
-)
+) """
 
 # Classifier
-process_document_sample(
+""" process_document_sample(
     project_id="genesis-genai-454505",
     location="us",
     processor_id="8678e143065e9987",
-    file_path=r"C:\Users\akars\Desktop\Studies\EXTRA\GenAIGenesis\genai_genesis\backend\sample.pdf",
+    file_path=r"/Users/savit/Desktop/Code/genai_genesis/backend/sample.pdf",
     mime_type="application/pdf",
     field_mask="text",
     processor_version_id="pretrained-foundation-model-v1.2-2024-05-10"
-)
+) """
