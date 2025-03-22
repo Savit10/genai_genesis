@@ -3,9 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from google.api_core.client_options import ClientOptions
 from google.cloud import documentai
 from typing import Optional
-from DocumentAIClassifier import process_document_sample
-import os
+from DocumentAIClassifier import process_document_sample, ocr_processing
 import tempfile
+from FormParser import get_data
+from DocumentAIClassifier import document_classifier
 
 app = FastAPI()
 
@@ -18,7 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
     # Process your file here
@@ -29,22 +29,19 @@ async def upload_file(file: UploadFile = File(...)):
         temp_file.write(content)
         temp_path = temp_file.name
 
-    doc_type = process_document_sample(
-        project_id="genesis-genai-454505",
-        location="us",
-        processor_id="14e7ceab3f5db4d",
-        file_path=temp_path,
-        mime_type="application/pdf",
-        field_mask="text,entities,pages.pageNumber",
-        processor_version_id="9d9f356e7d49f10f"
-    )
+    doc_type = document_classifier(temp_path=temp_path)
 
     print(doc_type)
-    return {
-        "filename": file.filename,
-        "content_type": file.content_type,
-        "message": "File processed successfully"
-    }
+
+    doc_types = ["claim_forms", "eobs", "written_notes"]
+
+    if doc_type == doc_types[2]:
+        # form_parser
+        text = ocr_processing()
+    else:
+        text = get_data()
+    print(text)
+
 
 
 if __name__ == "__main__":

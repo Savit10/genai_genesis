@@ -1,6 +1,6 @@
 
 from typing import Optional, Sequence
-
+import json
 from google.api_core.client_options import ClientOptions
 from google.cloud import documentai
 
@@ -35,10 +35,7 @@ def process_document_form_sample(
             value = layout_to_text(field.field_value, document.text)
             form_data[name.strip()] = value.strip()
     
-    # Print the extracted form data as JSON
-    print("\nExtracted Form Data:")
-    import json
-    print(json.dumps(form_data, indent=2))
+    json.dumps(form_data, indent=2)
 
     return form_data
 
@@ -97,11 +94,13 @@ def layout_to_text(layout: documentai.Document.Page.Layout, text: str) -> str:
     )
 
 # Example usage:
-process_document_form_sample(
-    project_id="genesis-genai-454505",
-    location="us",
-    processor_id="9c40568fce3ffba0",
-    file_path="form1.pdf",
-    mime_type="application/pdf",
-    processor_version="pretrained-form-parser-v2.1-2023-06-26"
-)
+def get_data():
+    response = process_document_form_sample(
+        project_id="genesis-genai-454505",
+        location="us",
+        processor_id="9c40568fce3ffba0",
+        file_path="form1.pdf",
+        mime_type="application/pdf",
+        processor_version="pretrained-form-parser-v2.1-2023-06-26"
+    )
+    return response

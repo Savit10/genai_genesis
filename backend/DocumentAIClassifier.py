@@ -72,4 +72,14 @@ def process_document_sample(
     return maxKey
 
 # Example usage:
-
+def document_classifier(temp_path):
+    doc_type = process_document_sample(
+        project_id="genesis-genai-454505",
+        location="us",
+        processor_id="14e7ceab3f5db4d",
+        file_path=temp_path,
+        mime_type="application/pdf",
+        field_mask="text,entities,pages.pageNumber",
+        processor_version_id="9d9f356e7d49f10f"
+    )
+    return doc_type

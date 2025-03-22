@@ -3,15 +3,6 @@ from typing import Optional
 from google.api_core.client_options import ClientOptions
 from google.cloud import documentai  # type: ignore
 
-# TODO(developer): Uncomment these variables before running the sample.
-# project_id = "YOUR_PROJECT_ID"
-# location = "YOUR_PROCESSOR_LOCATION" # Format is "us" or "eu"
-# processor_id = "YOUR_PROCESSOR_ID" # Create processor before running sample
-# file_path = "/path/to/local/pdf"
-# mime_type = "application/pdf" # Refer to https://cloud.google.com/document-ai/docs/file-types for supported file types
-# field_mask = "text,entities,pages.pageNumber"  # Optional. The fields to return in the Document object.
-# processor_version_id = "YOUR_PROCESSOR_VERSION_ID" # Optional. Processor version to use
-
 
 def process_document_sample(
     project_id: str,
@@ -69,27 +60,19 @@ def process_document_sample(
     document = result.document
 
     # Read the text recognition output from the processor
-    print("The document contains the following text:")
-    print(document.text)
+    #print("The document contains the following text:")
+    #print(document.text)
+    return document.text
 
 
 # OCR with the processor
-""" process_document_sample(
-    project_id="genesis-genai-454505",
-    location="us",
-    processor_id="bad535317e51821f",
-    file_path=r"/Users/savit/Desktop/Code/genai_genesis/backend/sample.pdf",
-    mime_type="application/pdf",
-    field_mask="text",
-) """
-
-# Classifier
-""" process_document_sample(
-    project_id="genesis-genai-454505",
-    location="us",
-    processor_id="8678e143065e9987",
-    file_path=r"/Users/savit/Desktop/Code/genai_genesis/backend/sample.pdf",
-    mime_type="application/pdf",
-    field_mask="text",
-    processor_version_id="pretrained-foundation-model-v1.2-2024-05-10"
-) """
+def ocr_processing():
+    text = process_document_sample(
+        project_id="genesis-genai-454505",
+        location="us",
+        processor_id="bad535317e51821f",
+        file_path=r"/Users/savit/Desktop/Code/genai_genesis/backend/sample.pdf",
+        mime_type="application/pdf",
+        field_mask="text",
+    )
+    return text
