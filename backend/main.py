@@ -7,6 +7,7 @@ from DocumentAIClassifier import process_document_sample, ocr_processing
 import tempfile
 from FormParser import get_data
 from DocumentAIClassifier import document_classifier
+from Summarizer import summarize_text
 
 app = FastAPI()
 
@@ -37,10 +38,15 @@ async def upload_file(file: UploadFile = File(...)):
 
     if doc_type == doc_types[2]:
         # form_parser
-        text = ocr_processing(temp_path)
+        raw_text = ocr_processing(temp_path)
     else:
-        text = get_data(temp_path)
-    print(text)
+        json_text = get_data(temp_path)
+    
+    features = "\n".join([f"{key}: {value}" for key, value in json_text.items() if value.strip() != ""])
+    summary = summarize_text(raw_text)
+
+    print(summary)
+
 
 
 

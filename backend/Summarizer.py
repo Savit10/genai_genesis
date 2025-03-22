@@ -31,3 +31,4 @@ def summarize(text):
         if event.type == "content-delta":
             summary += event.delta.message.content.text
     return summary
+
