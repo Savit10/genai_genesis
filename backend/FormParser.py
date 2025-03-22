@@ -4,13 +4,6 @@ import json
 from google.api_core.client_options import ClientOptions
 from google.cloud import documentai
 
-# TODO(developer): Uncomment these variables before running the sample.
-# project_id = "YOUR_PROJECT_ID"
-# location = "YOUR_PROCESSOR_LOCATION" # Format is "us" or "eu"
-# processor_id = "YOUR_PROCESSOR_ID" # Create processor before running sample
-# processor_version = "rc" # Refer to https://cloud.google.com/document-ai/docs/manage-processor-versions for more information
-# file_path = "/path/to/local/pdf"
-# mime_type = "application/pdf" # Refer to https://cloud.google.com/document-ai/docs/file-types for supported file types
 
 def process_document_form_sample(
     project_id: str,
@@ -94,12 +87,12 @@ def layout_to_text(layout: documentai.Document.Page.Layout, text: str) -> str:
     )
 
 # Example usage:
-def get_data():
+def get_data(temp_path):
     response = process_document_form_sample(
         project_id="genesis-genai-454505",
         location="us",
         processor_id="9c40568fce3ffba0",
-        file_path="form1.pdf",
+        file_path=temp_path,
         mime_type="application/pdf",
         processor_version="pretrained-form-parser-v2.1-2023-06-26"
     )

@@ -37,9 +37,9 @@ async def upload_file(file: UploadFile = File(...)):
 
     if doc_type == doc_types[2]:
         # form_parser
-        text = ocr_processing()
+        text = ocr_processing(temp_path)
     else:
-        text = get_data()
+        text = get_data(temp_path)
     print(text)
 
 

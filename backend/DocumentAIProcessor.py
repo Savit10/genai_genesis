@@ -66,12 +66,12 @@ def process_document_sample(
 
 
 # OCR with the processor
-def ocr_processing():
+def ocr_processing(temp_path):
     text = process_document_sample(
         project_id="genesis-genai-454505",
         location="us",
         processor_id="bad535317e51821f",
-        file_path=r"/Users/savit/Desktop/Code/genai_genesis/backend/sample.pdf",
+        file_path=temp_path,
         mime_type="application/pdf",
         field_mask="text",
     )
