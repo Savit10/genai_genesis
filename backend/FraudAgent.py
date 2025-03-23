@@ -56,14 +56,24 @@ def calculate_similarity(vec1: np.ndarray, vec2: np.ndarray) -> float:
     """Calculate cosine similarity between two embeddings"""
     return cosine_similarity([vec1], [vec2])[0][0]
 
+def concatenate_text_fields(claim_json: dict) -> str:
+    """Concatenate all text fields in the claim_json dictionary"""
+    text_fields = []
+    for key, value in claim_json.items():
+        if isinstance(value, str):  # Only concatenate string fields
+            text_fields.append(f"{key}: {value}")
+    return "\n".join(text_fields)
+
 def assess_fraud(claim_json: dict, document_text: str) -> dict:
     """Main fraud assessment function"""
+    # Concatenate all text fields for analysis
+    claim_text = concatenate_text_fields(claim_json)
+    
     # Text analysis
-    print(claim_json)
-    text_analysis = analyze_claim_text(claim_json['description'])
+    text_analysis = analyze_claim_text(claim_text)
     
     # Embedding similarity check
-    claim_embed = get_embeddings(claim_json["description"])
+    claim_embed = get_embeddings(claim_text)
     doc_embed = get_embeddings(document_text)
     similarity_score = calculate_similarity(claim_embed, doc_embed)
     
@@ -74,7 +84,7 @@ def assess_fraud(claim_json: dict, document_text: str) -> dict:
     }
 
 # Example usage
-''' if __name__ == "__main__":
+'''if __name__ == "__main__":
     # Sample insurance document (would normally be your policy document)
     insurance_doc = """Auto insurance policy covering collisions up to $50,000. 
     Requires police reports for claims over $5,000. Excludes vintage vehicles."""

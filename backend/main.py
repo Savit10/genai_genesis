@@ -39,6 +39,7 @@ async def upload_file(files: List[UploadFile] = File(...)):
     policy_doc = ocr_processing(policy_path)
     combined_features = ""
     last_json_text = None  # Keep track of the last JSON for validation
+    all_json_text = []  # Store all JSON data for fraud assessment
     
     for file in files:
         content = await file.read()
@@ -56,6 +57,7 @@ async def upload_file(files: List[UploadFile] = File(...)):
             else:
                 json_text = get_data(temp_path)
                 last_json_text = json_text  # Store the last JSON
+                all_json_text.append(json_text)
                 combined_features += "This is a JSON: " + "\n".join([f"{key}: {value}" for key, value in json_text.items() if value.strip() != ""])
 
         finally:
@@ -66,7 +68,8 @@ async def upload_file(files: List[UploadFile] = File(...)):
         if last_json_text:  # Only validate if we have JSON data
             all_results["validation"] = validate_form(last_json_text)
             # Assess fraud risk
-            fraud_risk = assess_fraud(last_json_text, policy_doc)
+            combined_json_texts = {key: value for json_text in all_json_text for key, value in json_text.items()}
+            fraud_risk = assess_fraud(combined_json_texts, policy_doc)
             all_results["fraud_risk"] = fraud_risk
         all_results["summary"] = summarize(combined_features)
     
