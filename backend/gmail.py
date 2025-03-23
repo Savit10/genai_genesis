@@ -125,21 +125,23 @@ def save_attachment(service, msg_id, attachment_id, filename):
 
 def is_insurance_related(text):
     try:
-        # Use Cohere to classify if the text is insurance-related
-        response = co.classify(
-            inputs=[text],
-            examples=[
-                {"text": "Please find attached my health insurance claim form", "label": "insurance"},
-                {"text": "Here is my medical bill and EOB for processing", "label": "insurance"},
-                {"text": "Attached is the explanation of benefits from my recent visit", "label": "insurance"},
-                {"text": "Meeting notes from yesterday's call", "label": "not_insurance"},
-                {"text": "Happy birthday! Hope you have a great day", "label": "not_insurance"},
-                {"text": "Here's the project timeline for next quarter", "label": "not_insurance"}
-            ]
+        prompt = "You are a helpful assistant that determines if an email is about an insurance claim. Analyze the following email and respond with ONLY 'yes' or 'no'. Email text: " + text
+        print(text)
+        # Use Cohere chat to determine if text is insurance-related
+        response = co.chat_stream(
+            
+            messages=[{"role": "user", "content": prompt}],
+            #preamble="You are an expert at identifying insurance claim related emails. You must respond with ONLY 'yes' or 'no', with no additional text or explanation.",
+            model="command-r-plus-08-2024",
         )
-        return response.classifications[0].prediction == "insurance"
+        summary = ""
+        for event in response:
+            if event.type == "content-delta":
+                summary += event.delta.message.content.text
+        print(summary)
+        return summary.strip().lower() == "yes"
     except Exception as e:
-        print(f"Error in Cohere classification: {e}")
+        print(f"Error in Cohere chat: {e}")
         return False
 
 async def process_insurance_document(filepath):
@@ -183,7 +185,15 @@ def get_message(service, msg_id):
             for part in parts:
                 content_type = part.get_content_type()
                 
-                # Handle attachments
+                # Handle text content first
+                if content_type == 'text/html' or content_type == 'text/plain':
+                    payload = part.get_payload()
+                    if isinstance(payload, str):  # Direct string payload
+                        if part.get('Content-Transfer-Encoding') == 'base64':
+                            payload = base64.b64decode(payload).decode('utf-8')
+                        email_body += payload
+                
+                # Then handle attachments
                 if part.get_filename():
                     for payload in message_detail['payload'].get('parts', []):
                         if payload.get('filename') == part.get_filename():
@@ -192,13 +202,6 @@ def get_message(service, msg_id):
                                 filepath = save_attachment(service, msg_id, attachment_id, part.get_filename())
                                 if filepath:
                                     saved_attachments.append(filepath)
-                
-                # Handle text content
-                elif content_type == 'text/html' or content_type == 'text/plain':
-                    payload = part.get_payload()
-                    if part.get('Content-Transfer-Encoding') == 'base64':
-                        payload = base64.b64decode(payload).decode('utf-8')
-                    email_body += payload
         else:
             payload = msg_str.get_payload()
             if msg_str.get('Content-Transfer-Encoding') == 'base64':
