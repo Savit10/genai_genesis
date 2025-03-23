@@ -2,13 +2,14 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from google.api_core.client_options import ClientOptions
 from google.cloud import documentai
-from typing import Optional
-from DocumentAIClassifier import process_document_sample, ocr_processing
-import tempfile
+from typing import Optional, List
+from DocumentAIProcessor import ocr_processing
 from FormParser import get_data
 from DocumentAIClassifier import document_classifier
-from Summarizer import summarize_text
+from Summarizer import summarize
 from validate_formdata import validate_form
+import tempfile
+import os
 
 app = FastAPI()
 
@@ -22,36 +23,46 @@ app.add_middleware(
 )
 
 @app.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
-    # Process your file here
-    print(file.filename)
-    content = await file.read()
+async def upload_file(files: List[UploadFile] = File(...)):
+    all_results = {
+        "summary": None,
+        "validation": None
+    }
+    combined_features = ""
+    last_json_text = None  # Keep track of the last JSON for validation
+    
+    for file in files:
+        content = await file.read()
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
-        temp_file.write(content)
-        temp_path = temp_file.name
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+            temp_file.write(content)
+            temp_path = temp_file.name
 
-    doc_type = document_classifier(temp_path=temp_path)
+        try:
+            doc_type = document_classifier(temp_path=temp_path)
+            
+            if doc_type == "written_notes":
+                raw_text = ocr_processing(temp_path)
+                combined_features += raw_text
+            else:
+                json_text = get_data(temp_path)
+                last_json_text = json_text  # Store the last JSON
+                combined_features += "This is a JSON: " + "\n".join([f"{key}: {value}" for key, value in json_text.items() if value.strip() != ""])
 
-    print(doc_type)
-
-    doc_types = ["claim_forms", "eobs", "written_notes"]
-
-    if doc_type == doc_types[2]:
-        # form_parser
-        raw_text = ocr_processing(temp_path)
-    else:
-        json_text = get_data(temp_path)
-        
-    if json_text:
-        validate_result = validate_form(json_text)
-    features = "\n".join([f"{key}: {value}" for key, value in json_text.items() if value.strip() != ""])
-    summary = summarize_text(raw_text)
-
-    print(summary)
-
-
-
+        finally:
+            os.unlink(temp_path)
+    
+    # Process combined results
+    if combined_features:
+        if last_json_text:  # Only validate if we have JSON data
+            all_results["validation"] = validate_form(last_json_text)
+        all_results["summary"] = summarize(combined_features)
+    
+    return {
+        "status": "success",
+        "message": f"Successfully processed {len(files)} files",
+        "data": all_results
+    }
 
 if __name__ == "__main__":
     import uvicorn
