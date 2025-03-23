@@ -32,7 +32,11 @@ async def upload_file(files: List[UploadFile] = File(...)):
         "validation": None
     }
 
-    policy_doc = ocr_processing("insurance_policy.pdf")
+    # Get the current directory path and construct the full path to insurance_policy.pdf
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    policy_path = os.path.join(current_dir, "insurance_policy.pdf")
+    
+    policy_doc = ocr_processing(policy_path)
     combined_features = ""
     last_json_text = None  # Keep track of the last JSON for validation
     

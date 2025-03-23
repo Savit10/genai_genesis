@@ -1,7 +1,7 @@
 import json
 from sentence_transformers import SentenceTransformer
 
-def generate_and_save_embeddings(data, model_name='all-MiniLM-L6-v2', split_by='\n'):
+def get_embeddings(data, model_name='all-MiniLM-L6-v2', split_by='\n'):
     """
     Generates embeddings for text chunks from a raw text file and saves them to a JSON file.
 

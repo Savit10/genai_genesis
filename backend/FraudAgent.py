@@ -59,7 +59,8 @@ def calculate_similarity(vec1: np.ndarray, vec2: np.ndarray) -> float:
 def assess_fraud(claim_json: dict, document_text: str) -> dict:
     """Main fraud assessment function"""
     # Text analysis
-    text_analysis = analyze_claim_text(claim_json["description"])
+    print(claim_json)
+    text_analysis = analyze_claim_text(claim_json['description'])
     
     # Embedding similarity check
     claim_embed = get_embeddings(claim_json["description"])
@@ -73,7 +74,7 @@ def assess_fraud(claim_json: dict, document_text: str) -> dict:
     }
 
 # Example usage
-if __name__ == "__main__":
+''' if __name__ == "__main__":
     # Sample insurance document (would normally be your policy document)
     insurance_doc = """Auto insurance policy covering collisions up to $50,000. 
     Requires police reports for claims over $5,000. Excludes vintage vehicles."""
@@ -90,4 +91,4 @@ if __name__ == "__main__":
     print("\nFraud Analysis Results:")
     print(f"Text Analysis: {result['text_analysis']}")
     print(f"Document Similarity Score: {result['document_similarity']}")
-    print(f"Combined Risk Assessment: {result['combined_risk']}")
+    print(f"Combined Risk Assessment: {result['combined_risk']}") '''

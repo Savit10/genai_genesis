@@ -1,5 +1,8 @@
 'use client';
 import { useState } from "react";
+import { StatusBadge } from '../components/StatusBadge';
+import { DocumentViewer } from '../components/DocumentViewer';
+import { ReportViewer } from '../components/ReportViewer';
 
 interface FileResult {
   filename: string;
@@ -19,14 +22,37 @@ interface UploadResponse {
   };
 }
 
+interface FileStatus {
+  file: File;
+  status: 'pending' | 'processing' | 'completed' | 'error';
+  id: string;
+}
+
+interface DocumentViewerProps {
+  file: File;
+  onClose: () => void;
+}
+
+interface ReportViewerProps {
+  results: UploadResponse;
+  onClose: () => void;
+}
+
 export default function Home() {
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<FileStatus[]>([]);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<UploadResponse | null>(null);
+  const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
+  const [isReportOpen, setIsReportOpen] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setFiles(Array.from(e.target.files));
+      const newFiles = Array.from(e.target.files).map(file => ({
+        file,
+        status: 'pending' as const,
+        id: crypto.randomUUID()
+      }));
+      setFiles(prev => [...prev, ...newFiles]);
     }
   };
 
@@ -34,9 +60,12 @@ export default function Home() {
     if (files.length === 0) return;
 
     setLoading(true);
+    // Update all files to processing status
+    setFiles(prev => prev.map(f => ({ ...f, status: 'processing' as const })));
+
     try {
       const formData = new FormData();
-      files.forEach((file) => {
+      files.forEach(({ file }) => {
         formData.append('files', file);
       });
 
@@ -45,116 +74,104 @@ export default function Home() {
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
+      if (!response.ok) throw new Error('Upload failed');
 
       const data: UploadResponse = await response.json();
       setResults(data);
-      console.log('Success:', data);
+      // Update all files to completed status
+      setFiles(prev => prev.map(f => ({ ...f, status: 'completed' as const })));
     } catch (error) {
       console.error('Error:', error);
+      // Update all files to error status
+      setFiles(prev => prev.map(f => ({ ...f, status: 'error' as const })));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-[#121212] text-white relative">
       <div className="container mx-auto px-4 py-16">
         <main className="flex flex-col items-center gap-8">
-          {/* Title Section */}
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-800 dark:text-white mb-8">
-            InsuraGenie
+          {/* Header */}
+          <h1 className="text-2xl md:text-3xl font-bold font-inter">
+            Insurance Claim Validator
           </h1>
-          
-          {/* File Upload Section */}
-          <div className="w-full max-w-xl p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-            <div className="flex flex-col items-center justify-center w-full">
-              <label 
-                htmlFor="file-upload"
-                className="w-full flex flex-col items-center justify-center px-4 py-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-all duration-200"
-              >
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <svg 
-                    className="w-10 h-10 mb-3 text-gray-400" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24" 
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth="2" 
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                    />
-                  </svg>
-                  <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-                    <span className="font-semibold">Click to upload</span> or drag and drop
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    PDF, DOC, DOCX (MAX. 10MB)
-                  </p>
+
+          {/* File List and Upload Section */}
+          <div className="w-full max-w-3xl bg-[#2A2A2A] rounded-xl p-6">
+            {/* File List */}
+            <div className="space-y-2 mb-4">
+              {files.map((fileStatus) => (
+                <div
+                  key={fileStatus.id}
+                  onClick={() => setSelectedFileId(fileStatus.id)}
+                  className={`flex items-center justify-between p-3 rounded-lg cursor-pointer
+                    ${selectedFileId === fileStatus.id ? 'bg-[#3A3A3A]' : 'bg-[#1E1E1E]'}
+                    hover:bg-[#3A3A3A] transition-colors duration-200`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-[#CCCCCC]">{fileStatus.file.name}</span>
+                  </div>
+                  <StatusBadge status={fileStatus.status} />
                 </div>
-                <input 
-                  id="file-upload" 
-                  type="file" 
-                  className="hidden" 
-                  accept=".pdf,.doc,.docx"
-                  multiple
-                  onChange={handleFileChange}
-                />
-              </label>
-              {files.length > 0 && (
-                <div className="mt-2 text-sm text-gray-500">
-                  <p>Selected files:</p>
-                  <ul className="list-disc pl-5">
-                    {files.map((file, index) => (
-                      <li key={index}>{file.name}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              ))}
             </div>
+
+            {/* Upload Button */}
+            <label className="flex items-center justify-center w-full p-4 border-2 border-dashed
+              border-[#3A3A3A] rounded-lg cursor-pointer hover:border-[#5ED4F4] transition-colors">
+              <span className="text-[#CCCCCC]">Upload More Files</span>
+              <input
+                type="file"
+                className="hidden"
+                multiple
+                onChange={handleFileChange}
+                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.tiff,.bmp"
+              />
+            </label>
+
+            {/* Generate Button */}
+            <button
+              onClick={handleSubmit}
+              disabled={files.length === 0 || loading}
+              className={`w-full mt-4 py-4 rounded-xl font-semibold transition-all duration-200
+                ${files.length === 0
+                  ? 'bg-[#2A2A2A] text-[#888888] cursor-not-allowed'
+                  : 'bg-[#5ED4F4] hover:bg-[#5ED4F4]/90 active:scale-97 text-white'}`}
+            >
+              Generate Validation Report
+            </button>
           </div>
 
-          {/* Upload Button */}
-          <button 
-            onClick={handleSubmit}
-            disabled={files.length === 0 || loading}
-            className={`mt-4 px-8 py-3 rounded-lg font-semibold transition-colors duration-200
-              ${files.length === 0 || loading 
-                ? 'bg-gray-400 cursor-not-allowed' 
-                : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-          >
-            {loading ? 'Processing...' : 'Process Documents'}
-          </button>
-
-          {/* Display Results */}
+          {/* Toggle Report Button */}
           {results && (
-            <div className="mt-8 space-y-4 w-full max-w-3xl">
-              <h2 className="text-xl font-semibold">Processing Results</h2>
-              
-              {/* Summary */}
-              {results.data.summary && (
-                <div className="p-4 border rounded-lg bg-white dark:bg-gray-800">
-                  <h3 className="font-medium">Summary</h3>
-                  <p className="mt-2 text-sm whitespace-pre-line">{results.data.summary}</p>
-                </div>
-              )}
-
-              {/* Validation */}
-              {results.data.validation && (
-                <div className="p-4 border rounded-lg bg-white dark:bg-gray-800">
-                  <h3 className="font-medium">Validation Results</h3>
-                  <p className="mt-2 text-sm whitespace-pre-line">{results.data.validation}</p>
-                </div>
-              )}
-            </div>
+            <button
+              onClick={() => setIsReportOpen(prev => !prev)}
+              className="fixed bottom-4 left-4 bg-[#5ED4F4] p-4 rounded-full shadow-lg
+                hover:bg-[#5ED4F4]/90 transition-colors duration-200"
+            >
+              {isReportOpen ? '✕' : '📄'}
+            </button>
           )}
         </main>
       </div>
+
+      {/* Document Viewer Slide-out */}
+      {selectedFileId && (
+        <DocumentViewer
+          file={files.find(f => f.id === selectedFileId)!.file}
+          onClose={() => setSelectedFileId(null)}
+        />
+      )}
+
+      {/* Report Viewer Slide-out */}
+      {results && isReportOpen && (
+        <ReportViewer
+          results={results}
+          onClose={() => setIsReportOpen(false)}
+        />
+      )}
     </div>
   );
 }
