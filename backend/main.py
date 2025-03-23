@@ -11,6 +11,8 @@ from validate_formdata import validate_form
 from feature_embeddings import get_embeddings
 import tempfile
 import os
+from FraudAgent import assess_fraud
+
 
 app = FastAPI()
 
@@ -29,6 +31,8 @@ async def upload_file(files: List[UploadFile] = File(...)):
         "summary": None,
         "validation": None
     }
+
+    policy_doc = ocr_processing("insurance_policy.pdf")
     combined_features = ""
     last_json_text = None  # Keep track of the last JSON for validation
     
@@ -57,6 +61,9 @@ async def upload_file(files: List[UploadFile] = File(...)):
     if combined_features:
         if last_json_text:  # Only validate if we have JSON data
             all_results["validation"] = validate_form(last_json_text)
+            # Assess fraud risk
+            fraud_risk = assess_fraud(last_json_text, policy_doc)
+            all_results["fraud_risk"] = fraud_risk
         all_results["summary"] = summarize(combined_features)
     
     return {
@@ -68,3 +75,5 @@ async def upload_file(files: List[UploadFile] = File(...)):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0000", port=8000) 
+
+
