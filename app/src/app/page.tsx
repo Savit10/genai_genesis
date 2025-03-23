@@ -1,25 +1,46 @@
 'use client';
 import { useState } from "react";
 
+interface FileResult {
+  filename: string;
+  doc_type: string;
+  content: {
+    raw_text?: string;
+    structured_data?: Record<string, any>;
+  };
+}
+
+interface UploadResponse {
+  status: string;
+  message: string;
+  data: {
+    summary: string | null;
+    validation: string | null;
+  };
+}
+
 export default function Home() {
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<UploadResponse | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+    if (e.target.files) {
+      setFiles(Array.from(e.target.files));
     }
   };
 
   const handleSubmit = async () => {
-    if (!file) return;
+    if (files.length === 0) return;
 
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      files.forEach((file) => {
+        formData.append('files', file);
+      });
 
-      const response = await fetch('http://localhost:8000/upload', {  // Adjust URL to match your FastAPI endpoint
+      const response = await fetch('http://localhost:8000/upload', {
         method: 'POST',
         body: formData,
       });
@@ -28,12 +49,11 @@ export default function Home() {
         throw new Error('Upload failed');
       }
 
-      const data = await response.json();
+      const data: UploadResponse = await response.json();
+      setResults(data);
       console.log('Success:', data);
-      // Handle successful response here
     } catch (error) {
       console.error('Error:', error);
-      // Handle error here
     } finally {
       setLoading(false);
     }
@@ -82,13 +102,19 @@ export default function Home() {
                   type="file" 
                   className="hidden" 
                   accept=".pdf,.doc,.docx"
+                  multiple
                   onChange={handleFileChange}
                 />
               </label>
-              {file && (
-                <p className="mt-2 text-sm text-gray-500">
-                  Selected file: {file.name}
-                </p>
+              {files.length > 0 && (
+                <div className="mt-2 text-sm text-gray-500">
+                  <p>Selected files:</p>
+                  <ul className="list-disc pl-5">
+                    {files.map((file, index) => (
+                      <li key={index}>{file.name}</li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </div>
           </div>
@@ -96,14 +122,37 @@ export default function Home() {
           {/* Upload Button */}
           <button 
             onClick={handleSubmit}
-            disabled={!file || loading}
+            disabled={files.length === 0 || loading}
             className={`mt-4 px-8 py-3 rounded-lg font-semibold transition-colors duration-200
-              ${!file || loading 
+              ${files.length === 0 || loading 
                 ? 'bg-gray-400 cursor-not-allowed' 
                 : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
           >
-            {loading ? 'Processing...' : 'Process Document'}
+            {loading ? 'Processing...' : 'Process Documents'}
           </button>
+
+          {/* Display Results */}
+          {results && (
+            <div className="mt-8 space-y-4 w-full max-w-3xl">
+              <h2 className="text-xl font-semibold">Processing Results</h2>
+              
+              {/* Summary */}
+              {results.data.summary && (
+                <div className="p-4 border rounded-lg bg-white dark:bg-gray-800">
+                  <h3 className="font-medium">Summary</h3>
+                  <p className="mt-2 text-sm whitespace-pre-line">{results.data.summary}</p>
+                </div>
+              )}
+
+              {/* Validation */}
+              {results.data.validation && (
+                <div className="p-4 border rounded-lg bg-white dark:bg-gray-800">
+                  <h3 className="font-medium">Validation Results</h3>
+                  <p className="mt-2 text-sm whitespace-pre-line">{results.data.validation}</p>
+                </div>
+              )}
+            </div>
+          )}
         </main>
       </div>
     </div>

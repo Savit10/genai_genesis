@@ -26,11 +26,11 @@ claim_data = {
   "policy_expiration_date": "2025-03-01"
 }
 
-def validate_form():
+def validate_form(input_form_data):
     # 👉 Initialize Cohere LLM
     cohere_llm = ChatCohere(cohere_api_key=os.getenv("COHERE_API_KEY"))
 
-    claim_json = json.dumps(claim_data)
+    claim_json = json.dumps(input_form_data)
 
     embeddings = pc.inference.embed(
         model="multilingual-e5-large",
@@ -45,13 +45,11 @@ def validate_form():
         top_k=3, 
         include_metadata=True
     )
-    print(search_results["matches"])
     
     retrieved_policies = "\n\n".join(
         [res["metadata"]['content'] for res in search_results["matches"]]
     )
 
-    # Step 4: Create validation prompt template 
     validation_prompt = PromptTemplate.from_template("""
         You are an expert insurance claim validator.  
         Below is an insurance claim JSON:
@@ -72,15 +70,10 @@ def validate_form():
         Finally, recommend one of: APPROVE, FLAG, or DENY — and explain why.
     """)
     
-    # 👉 Create a single validation prompt
-
-    # 👉 Single LLM chain call
-    validation_chain = LLMChain(llm=cohere_llm, prompt=validation_prompt, output_key="validation_result")
-
-    # 👉 Run the chain
-    result = validation_chain({"claim_json": claim_json, "retrieved_policies": retrieved_policies})
-
-    # 👉 Output the results
-    print("VALIDATION RESULT:\n")
-    print(result['validation_result'])
+    validation_chain = LLMChain(llm=cohere_llm, prompt=validation_prompt)
+    
+    # Get the validation result and return it
+    result = validation_chain.run({"claim_json": claim_json, "retrieved_policies": retrieved_policies})
+    return result  # Make sure we're returning the actual validation text
+    
     
