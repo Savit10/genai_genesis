@@ -58,17 +58,22 @@ def validate_form(input_form_data):
         Here are relevant policy guideline excerpts:
         {retrieved_policies}
 
-        Please check:
+        Please carefully validate each of the following checks and provide answers in this format:
+        **1.** ✅ Yes - brief explanation.  
+        **2.** ❌ No - brief explanation.  
+        **3.** 🤔 Cannot determine - brief explanation.  
+
+        Checks:
         1. Is the policy number present and well-formed?  
         2. Is the policy active on the treatment date?  
         3. Does the diagnosis code match the treatment description?  
         4. Is the claim amount reasonable according to the policy guidelines?  
         5. Does the policy coverage support this treatment?  
-        6. Is there anything suspicious or unusual given these policies?
+        6. Is there anything suspicious or unusual given these policies?  
 
-        For each check, answer Yes/No with a brief explanation.  
-        Finally, recommend one of: APPROVE, FLAG, or DENY — and explain why.
-    """)
+        At the end, recommend one of: **APPROVE**, **FLAG**, or **DENY**, and explain your reasoning in 2-3 sentences.
+        Only show answers and recommendation. Do not repeat the questions themselves.
+        """)
     
     validation_chain = LLMChain(llm=cohere_llm, prompt=validation_prompt)
     
