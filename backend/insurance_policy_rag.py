@@ -136,7 +136,7 @@ def generate_vector_database(pdf_file_path):
     print(f"Completed indexing. Total chunks embedded: {chunk_count}")
 
 def main():
-    generate_vector_database("/Users/savit/Desktop/Code/genai_genesis/backend/insurance_policy.pdf")
+    generate_vector_database("/Users/savit/Desktop/Code/genai_genesis/backend/sample-policy-contract.pdf")
 
 if __name__ == "__main__":
     main()
