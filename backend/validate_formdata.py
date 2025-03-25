@@ -54,6 +54,7 @@ def validate_form(input_form_data):
         You are an expert insurance claim validator.  
         Below is an insurance claim JSON:
         {claim_json}
+        Don't directly refer to this as a JSON in your generated output, just as the uploaded data.
 
         Here are relevant policy guideline excerpts:
         {retrieved_policies}
@@ -72,7 +73,7 @@ def validate_form(input_form_data):
         6. Is there anything suspicious or unusual given these policies?  
 
         At the end, recommend one of: **APPROVE**, **FLAG**, or **DENY**, and explain your reasoning in 2-3 sentences.
-        Only show answers and recommendation. Do not repeat the questions themselves.
+        Only show answers and recommendation. Do not repeat the questions themselves. 
         """)
     
     validation_chain = LLMChain(llm=cohere_llm, prompt=validation_prompt)

@@ -99,30 +99,30 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f0fefe] text-[#333333] relative">
+    <div className="min-h-screen bg-[#000000] text-[#333333] relative">
       {/* Background Image and Title Section */}
       <div className="relative w-full h-screen flex flex-col items-center justify-center">
         {/* Background Image */}
-        <div className="absolute w-[60%] h-[60%] bg-[#f0fefe] rounded-3xl shadow-lg overflow-hidden">
-          <img 
-            src="/background-image.jpg" 
+        <div className="absolute top-10 w-[100%] h-[85%] bg-[#f0fefe] shadow-lg overflow-hidden">
+        <img 
+            src="/gradient-hero-prerender.jpeg" 
             alt="Background" 
-            className="w-full h-full object-cover opacity-80"
+            className="w-full h-full object-cover opacity-100"
           />
         </div>
         
         {/* Title Text Box */}
-        <div className="relative z-10 max-w-2xl text-center mb-8 bg-white/80 backdrop-blur-sm p-8 rounded-xl shadow-lg">
-          <h1 className="text-4xl md:text-5xl font-bold text-[#434297] mb-4">
-            Insurance Claim Validator
+        <div className="relative z-10 text-center mb-8 -mt-90 p-8">
+          <h1 className="relative text-5xl md:text-7xl font-bold text-[#ffffff] mb-4">
+            The AI Insurance Copilot: <span className="text-black">medClaim.ai</span>
           </h1>
-          <p className="text-lg md:text-xl text-[#434297]/80">
-            Streamline your insurance claims with AI-powered validation and fraud detection
+          <p className="relative text-xl md:text-5xl text-[#ffffff]/80">
+          Focus on People, Not Paper.
           </p>
         </div>
 
         {/* Upload Section - Positioned at bottom center */}
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-3xl bg-white rounded-t-3xl p-8 shadow-lg">
+        <div className="absolute top-90 left-1/2 transform -translate-x-1/2 w-full max-w-3xl bg-white rounded-t-3xl rounded-b-3xl p-8 shadow-lg">
           {/* File List */}
           <div className="space-y-2 mb-4">
             {files.map((fileStatus) => (
