@@ -4,7 +4,8 @@ The inspiration behind MedClaim AI stems from the growing need for efficiency an
 ## What it does
 MedClaim AI is a Generative AI-powered system designed to streamline and secure the medical insurance claims process. It classifies and validates documents such as insurance policies, claims, and doctor's notes. The system cross-checks claims against policies and medical guidelines to ensure compliance and detects potential fraud through anomaly detection. Finally, it generates a concise summary report that includes validated claims, fraud risk assessments, and actionable insights, enabling quick and informed decision-making.
 
-![alt text](app/public/prod_gif.gif)
+
+<img src="app/public/prod_gif.gif" width="50%" height="50%"/>
 
 
 
